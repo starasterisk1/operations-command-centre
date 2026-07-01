@@ -1,0 +1,6 @@
+site_id,site_name,revenue_change,staffing_level,complaints,compliance_overdue,client_satisfaction,manager_vacancy
+001,Portsmouth Vets,-4,82,3,1,88,No
+002,Southsea Animal Hospital,6,96,1,0,94,No
+003,Bath Vets,-12,71,8,4,76,Yes
+004,Bristol Referrals,-7,79,5,2,81,No
+005,Cardiff Vets,3,90,2,0,91,No
