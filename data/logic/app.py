@@ -62,3 +62,37 @@ for _, row in df.sort_values("risk_score", ascending=False).iterrows():
             "- Confirm any overdue actions\n"
             "- Monitor client satisfaction"
         )
+
+st.divider()
+
+st.subheader("AI Operations Assistant")
+
+question = st.text_input("Ask an operational question")
+
+if question:
+    if "attention" in question.lower() or "risk" in question.lower():
+        top_sites = df.sort_values("risk_score", ascending=False).head(3)
+
+        st.write("The sites needing the most attention are:")
+
+        for _, row in top_sites.iterrows():
+            st.write(
+                f"- **{row['site_name']}**: {row['risk_level']} risk "
+                f"with a score of {row['risk_score']}."
+            )
+
+    elif "compliance" in question.lower():
+        compliance_sites = df[df["compliance_overdue"] > 0]
+
+        st.write("Sites with overdue compliance actions:")
+
+        for _, row in compliance_sites.iterrows():
+            st.write(
+                f"- **{row['site_name']}** has "
+                f"{row['compliance_overdue']} overdue compliance action(s)."
+            )
+
+    else:
+        st.write(
+            "I can currently answer questions about site risk, attention areas, and compliance."
+        )
