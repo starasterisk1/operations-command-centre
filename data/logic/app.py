@@ -5,7 +5,7 @@ from logic.risk_scoring import calculate_risk
 st.set_page_config(page_title="Operations Command Centre", layout="wide")
 
 st.title("Operations Command Centre")
-st.subheader("AI-ready operational intelligence platform for multi-site organisations")
+st.caption("Operational intelligence platform for multi-site organisations")
 
 df = pd.read_csv("data/sample_sites.csv")
 
@@ -14,19 +14,51 @@ df[["risk_score", "risk_level"]] = df.apply(
     axis=1
 )
 
-st.metric("Total Sites", len(df))
-st.metric("High Risk Sites", len(df[df["risk_level"] == "High"]))
+total_sites = len(df)
+high_risk_sites = len(df[df["risk_level"] == "High"])
+medium_risk_sites = len(df[df["risk_level"] == "Medium"])
+average_satisfaction = round(df["client_satisfaction"].mean(), 1)
 
-st.dataframe(df, use_container_width=True)
+col1, col2, col3, col4 = st.columns(4)
 
-st.subheader("Sites Requiring Attention")
+col1.metric("Total Sites", total_sites)
+col2.metric("High Risk Sites", high_risk_sites)
+col3.metric("Medium Risk Sites", medium_risk_sites)
+col4.metric("Avg Client Satisfaction", f"{average_satisfaction}%")
 
-high_risk_sites = df[df["risk_level"] == "High"]
+st.divider()
 
-if high_risk_sites.empty:
-    st.success("No high-risk sites identified.")
+st.subheader("Site Risk Overview")
+
+risk_filter = st.selectbox(
+    "Filter by risk level",
+    ["All", "High", "Medium", "Low"]
+)
+
+if risk_filter != "All":
+    filtered_df = df[df["risk_level"] == risk_filter]
 else:
-    for _, row in high_risk_sites.iterrows():
-        st.warning(
-            f"{row['site_name']} is high risk with a score of {row['risk_score']}."
+    filtered_df = df
+
+st.dataframe(filtered_df, use_container_width=True)
+
+st.divider()
+
+st.subheader("Recommended Operational Actions")
+
+for _, row in df.sort_values("risk_score", ascending=False).iterrows():
+    if row["risk_level"] == "High":
+        st.error(f"{row['site_name']} requires urgent attention.")
+        st.write(
+            "- Review staffing coverage\n"
+            "- Escalate overdue compliance actions\n"
+            "- Review complaints trend\n"
+            "- Schedule leadership check-in"
+        )
+    elif row["risk_level"] == "Medium":
+        st.warning(f"{row['site_name']} should be monitored.")
+        st.write(
+            "- Review local performance indicators\n"
+            "- Confirm any overdue actions\n"
+            "- Monitor client satisfaction"
         )
