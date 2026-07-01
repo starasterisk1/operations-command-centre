@@ -1,6 +1,9 @@
 import pandas as pd
 import streamlit as st
+
 from logic.risk_scoring import calculate_risk
+from logic.recommendations import generate_recommendations
+
 
 st.set_page_config(page_title="Operations Command Centre", layout="wide")
 
@@ -49,19 +52,13 @@ st.subheader("Recommended Operational Actions")
 for _, row in df.sort_values("risk_score", ascending=False).iterrows():
     if row["risk_level"] == "High":
         st.error(f"{row['site_name']} requires urgent attention.")
-        st.write(
-            "- Review staffing coverage\n"
-            "- Escalate overdue compliance actions\n"
-            "- Review complaints trend\n"
-            "- Schedule leadership check-in"
-        )
+        for recommendation in generate_recommendations(row):
+            st.write(f"- {recommendation}")
+
     elif row["risk_level"] == "Medium":
         st.warning(f"{row['site_name']} should be monitored.")
-        st.write(
-            "- Review local performance indicators\n"
-            "- Confirm any overdue actions\n"
-            "- Monitor client satisfaction"
-        )
+        for recommendation in generate_recommendations(row):
+            st.write(f"- {recommendation}")
 
 st.divider()
 
@@ -70,18 +67,24 @@ st.subheader("AI Operations Assistant")
 question = st.text_input("Ask an operational question")
 
 if question:
-    if "attention" in question.lower() or "risk" in question.lower():
+    question_lower = question.lower()
+
+    if "attention" in question_lower or "risk" in question_lower:
         top_sites = df.sort_values("risk_score", ascending=False).head(3)
 
         st.write("The sites needing the most attention are:")
 
         for _, row in top_sites.iterrows():
+            st.write(f"### {row['site_name']}")
             st.write(
-                f"- **{row['site_name']}**: {row['risk_level']} risk "
-                f"with a score of {row['risk_score']}."
+                f"Risk level: **{row['risk_level']}** | "
+                f"Risk score: **{row['risk_score']}**"
             )
 
-    elif "compliance" in question.lower():
+            for recommendation in generate_recommendations(row):
+                st.write(f"- {recommendation}")
+
+    elif "compliance" in question_lower:
         compliance_sites = df[df["compliance_overdue"] > 0]
 
         st.write("Sites with overdue compliance actions:")
@@ -92,7 +95,19 @@ if question:
                 f"{row['compliance_overdue']} overdue compliance action(s)."
             )
 
+    elif "satisfaction" in question_lower:
+        lowest_satisfaction = df.sort_values("client_satisfaction").head(3)
+
+        st.write("Sites with the lowest client satisfaction:")
+
+        for _, row in lowest_satisfaction.iterrows():
+            st.write(
+                f"- **{row['site_name']}**: "
+                f"{row['client_satisfaction']}%"
+            )
+
     else:
         st.write(
-            "I can currently answer questions about site risk, attention areas, and compliance."
+            "I can currently answer questions about risk, attention areas, "
+            "compliance, and client satisfaction."
         )
